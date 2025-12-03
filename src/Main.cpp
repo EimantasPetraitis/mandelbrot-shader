@@ -67,7 +67,7 @@ int main()
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-    int width = 1280;
+    int width = 960;
     int height = 960;
     
     window = glfwCreateWindow(width, height, "Mandelbrot Set", NULL, NULL);
@@ -193,16 +193,16 @@ int main()
 
     glUseProgram(program);
 
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBindVertexArray(vertexArrayId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+    glUseProgram(program);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
     while (!glfwWindowShouldClose(window))
     {
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glBindVertexArray(vertexArrayId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
-        glUseProgram(program);
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
