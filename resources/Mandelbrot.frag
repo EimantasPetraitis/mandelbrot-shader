@@ -13,7 +13,7 @@ void main()
     );
     mat2 z = mat2(0.0, 0.0, 0.0, 0.0);
 
-    for (int i = 0 ; i < 64 ; i++)
+    for (int i = 0 ; i < 128 ; i++)
     {
 
         mat2 new_z = z*z + c;

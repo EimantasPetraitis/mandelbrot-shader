@@ -3,19 +3,55 @@
 #include <sstream>
 #include <string>
 
+#include <array>
+
 #include <cmath>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#define ZOOM_SPEED 0.5f
+#define MIN_ZOOM -ZOOM_SPEED
+
 float bounds[4];
 float offsetX = -0.6f;
 float offsetY = 0.0f;
 float zoom = 0.0f;
-float aspectRatio;
+
+int windowWidth = 1400;
+int windowHeight = 960;
+float aspectRatio = (float)windowWidth / (float)windowHeight;
 
 int u_BoundsX;
 int u_BoundsY;
+
+std::string ReadFile(const std::string& path)
+{
+
+    std::ifstream fileStream(path);
+    std::ostringstream stringStream;
+    stringStream << fileStream.rdbuf();
+
+    return stringStream.str();
+
+}
+
+std::array<float, 2> PixelsToComplexCoordinates(
+    int x, int y
+)
+{
+
+    float coordinatesPerPixel
+        = (bounds[3] - bounds[2]) / windowHeight;
+
+    std::array<float, 2> coordinates = {
+        x * coordinatesPerPixel + bounds[0],
+        -y * coordinatesPerPixel + bounds[3]
+    };
+
+    return coordinates;
+
+}
 
 void GLAPIENTRY HandleOpenGLErrors(
     GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei lenght,
@@ -27,17 +63,6 @@ void GLAPIENTRY HandleOpenGLErrors(
         << "  severity: " << severity << "\n" << message << "\n\n\n";
     
     exit(-1);
-
-}
-
-std::string ReadFile(const std::string& path)
-{
-
-    std::ifstream fileStream(path);
-    std::ostringstream stringStream;
-    stringStream << fileStream.rdbuf();
-
-    return stringStream.str();
 
 }
 
@@ -85,30 +110,66 @@ void RecalculateBounds()
 
 }
 
-void Redraw()
+void ResendBounds()
 {
-
-    RecalculateBounds();
 
     glUniform2f(u_BoundsX, bounds[0], bounds[1]);
     glUniform2f(u_BoundsY, bounds[2], bounds[3]);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+}
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+void UpdateBounds()
+{
+
+    RecalculateBounds();
+    ResendBounds();
 
 }
 
-void framebufferResize(
+void FramebufferCallback(
     GLFWwindow* window, int width, int height
 )
 {
 
     glViewport(0, 0, width, height);
 
+    windowWidth = width;
+    windowHeight = height;
     aspectRatio = (float)width / (float)height;
 
-    Redraw();
+    UpdateBounds();
+
+}
+
+void ScrollCallback(
+    GLFWwindow* window, double scrollX, double scrollY
+)
+{
+
+    double cursorX, cursorY;
+    glfwGetCursorPos(window, &cursorX, &cursorY);
+
+    auto coordinates = PixelsToComplexCoordinates(
+        cursorX, cursorY
+    );
+
+    zoom += scrollY * ZOOM_SPEED;
+    if (zoom < MIN_ZOOM)
+        zoom = MIN_ZOOM;
+
+    RecalculateBounds();
+
+    auto coordinatesAtNewZoom = PixelsToComplexCoordinates(
+        cursorX, cursorY
+    );
+
+    float deltaX = coordinatesAtNewZoom[0] - coordinates[0];
+    float deltaY = coordinatesAtNewZoom[1] - coordinates[1];
+
+    offsetX -= deltaX;
+    offsetY -= deltaY;
+
+    UpdateBounds();
 
 }
 
@@ -121,11 +182,11 @@ int main()
         return -1;
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-
-    int width = 1400;
-    int height = 960;
     
-    window = glfwCreateWindow(width, height, "Mandelbrot Set", NULL, NULL);
+    window = glfwCreateWindow(
+        windowWidth, windowHeight,
+        "Mandelbrot Set", NULL, NULL
+    );
     if (!window)
     {
         glfwTerminate();
@@ -164,8 +225,6 @@ int main()
 
     std::string vertexShaderPath = "resources/Mandelbrot.vert";
     std::string fragmentShaderPath = "resources/Mandelbrot.frag";
-
-    aspectRatio = (float)width / (float)height;
 
     // Vertex and index buffers, vertex array
 
@@ -258,23 +317,20 @@ int main()
     // Drawing
 
     glfwSetFramebufferSizeCallback(
-        window, framebufferResize
+        window, FramebufferCallback
     );
+    glfwSetScrollCallback(window, ScrollCallback);
 
     glBindVertexArray(vertexArrayId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
     glUseProgram(program);
 
-    RecalculateBounds();
-
-    glUniform2f(u_BoundsX, bounds[0], bounds[1]);
-    glUniform2f(u_BoundsY, bounds[2], bounds[3]);
+    UpdateBounds();
 
     while (!glfwWindowShouldClose(window))
     {
 
         glClear(GL_COLOR_BUFFER_BIT);
-
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
