@@ -12,7 +12,7 @@ vec4 determineColor(
 {
 
     /* Determines the color of a pixel outside the Mandelbrot set
-    based on the number of interations needed to escape 
+    based on the number of iterations needed to escape 
     (this method uses a simplified HSV to RGB calculation).
     */
 

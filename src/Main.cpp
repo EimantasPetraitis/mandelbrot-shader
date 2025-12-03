@@ -25,6 +25,10 @@ float aspectRatio = (float)windowWidth / (float)windowHeight;
 int u_BoundsX;
 int u_BoundsY;
 
+bool mousePressed = false;
+float previousCursorX = -1.0f;
+float previousCursorY = -1.0f;
+
 std::string ReadFile(const std::string& path)
 {
 
@@ -170,6 +174,58 @@ void ScrollCallback(
     offsetY -= deltaY;
 
     UpdateBounds();
+
+}
+
+void mouseButtonCallback(
+    GLFWwindow* window, int button, int action, int modifiers
+)
+{
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+
+        if (action == GLFW_PRESS)
+        {
+            mousePressed = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            mousePressed = false;
+            previousCursorX = -1.0f;
+            previousCursorY = -1.0f;
+        }
+
+    }
+
+}
+
+void cursorPositionCallback(
+    GLFWwindow* window, double cursorX, double cursorY
+)
+{
+
+    if (mousePressed == false)
+        return;
+
+    if (previousCursorX != -1.0f && previousCursorY != -1.0f)
+    {
+
+        float deltaX = cursorX - previousCursorX;
+        float deltaY = cursorY - previousCursorY;
+
+        float coordinatesPerPixel
+            = (bounds[3] - bounds[2]) / windowHeight;
+
+        offsetX -= deltaX * coordinatesPerPixel;
+        offsetY += deltaY * coordinatesPerPixel;
+
+        UpdateBounds();
+
+    }
+
+    previousCursorX = cursorX;
+    previousCursorY = cursorY;
 
 }
 
@@ -320,6 +376,8 @@ int main()
         window, FramebufferCallback
     );
     glfwSetScrollCallback(window, ScrollCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, cursorPositionCallback);
 
     glBindVertexArray(vertexArrayId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
