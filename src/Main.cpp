@@ -8,6 +8,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+float bounds[4];
+float offsetX = -0.6f;
+float offsetY = 0.0f;
+float zoom = 0.0f;
+float aspectRatio;
+
+int u_BoundsX;
+int u_BoundsY;
+
 void GLAPIENTRY HandleOpenGLErrors(
     GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei lenght,
     const GLchar* message, const void* userParam
@@ -59,11 +68,7 @@ int HandleShaderErrors(GLuint shader)
 
 }
 
-void RecalculateBounds(
-    float* bounds,
-    float offsetX, float offsetY,
-    float zoom, float aspectRatio
-)
+void RecalculateBounds()
 {
 
     float zoomExp = pow(2.0f, -zoom);
@@ -77,6 +82,33 @@ void RecalculateBounds(
     bounds[1] = Xmax;
     bounds[2] = Ymin;
     bounds[3] = Ymax;
+
+}
+
+void Redraw()
+{
+
+    RecalculateBounds();
+
+    glUniform2f(u_BoundsX, bounds[0], bounds[1]);
+    glUniform2f(u_BoundsY, bounds[2], bounds[3]);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+}
+
+void framebufferResize(
+    GLFWwindow* window, int width, int height
+)
+{
+
+    glViewport(0, 0, width, height);
+
+    aspectRatio = (float)width / (float)height;
+
+    Redraw();
 
 }
 
@@ -133,10 +165,7 @@ int main()
     std::string vertexShaderPath = "resources/Mandelbrot.vert";
     std::string fragmentShaderPath = "resources/Mandelbrot.frag";
 
-    float offsetX = -0.6f;
-    float offsetY = 0.0f;
-    float zoom = 0.0f;
-    float aspectRatio = (float)width / (float)height;
+    aspectRatio = (float)width / (float)height;
 
     // Vertex and index buffers, vertex array
 
@@ -208,7 +237,7 @@ int main()
         char* message = (char*)alloca(messageLenght * sizeof(char));
         glGetProgramInfoLog(program, messageLenght, &messageLenght, message);
 
-        std::cout << "Error: Failed to validate prgoram.\n";
+        std::cout << "Error: Failed to validate program.\n";
         std::cout << message << "\n";
 
         glDeleteProgram(program);
@@ -223,19 +252,20 @@ int main()
 
     // Uniforms
 
-    int u_BoundsX = glGetUniformLocation(program, "u_BoundsX");
-    int u_BoundsY = glGetUniformLocation(program, "u_BoundsY");
+    u_BoundsX = glGetUniformLocation(program, "u_BoundsX");
+    u_BoundsY = glGetUniformLocation(program, "u_BoundsY");
 
     // Drawing
+
+    glfwSetFramebufferSizeCallback(
+        window, framebufferResize
+    );
 
     glBindVertexArray(vertexArrayId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
     glUseProgram(program);
 
-    float bounds[4];
-    RecalculateBounds(
-        bounds, offsetX, offsetY, zoom, aspectRatio
-    );
+    RecalculateBounds();
 
     glUniform2f(u_BoundsX, bounds[0], bounds[1]);
     glUniform2f(u_BoundsY, bounds[2], bounds[3]);
@@ -248,7 +278,7 @@ int main()
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
+        glfwWaitEvents();
 
     }
 
