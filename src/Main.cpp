@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+#include <cmath>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -57,6 +59,27 @@ int HandleShaderErrors(GLuint shader)
 
 }
 
+void RecalculateBounds(
+    float* bounds,
+    float offsetX, float offsetY,
+    float zoom, float aspectRatio
+)
+{
+
+    float zoomExp = pow(2.0f, -zoom);
+
+    float Xmin = -aspectRatio * zoomExp + offsetX;
+    float Xmax = aspectRatio * zoomExp + offsetX;
+    float Ymin = -zoomExp + offsetY;
+    float Ymax = zoomExp + offsetY;
+
+    bounds[0] = Xmin;
+    bounds[1] = Xmax;
+    bounds[2] = Ymin;
+    bounds[3] = Ymax;
+
+}
+
 int main()
 {
 
@@ -67,7 +90,7 @@ int main()
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-    int width = 960;
+    int width = 1400;
     int height = 960;
     
     window = glfwCreateWindow(width, height, "Mandelbrot Set", NULL, NULL);
@@ -109,6 +132,11 @@ int main()
 
     std::string vertexShaderPath = "resources/Mandelbrot.vert";
     std::string fragmentShaderPath = "resources/Mandelbrot.frag";
+
+    float offsetX = -0.6f;
+    float offsetY = 0.0f;
+    float zoom = 0.0f;
+    float aspectRatio = (float)width / (float)height;
 
     // Vertex and index buffers, vertex array
 
@@ -193,16 +221,31 @@ int main()
 
     glUseProgram(program);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    // Uniforms
+
+    int u_BoundsX = glGetUniformLocation(program, "u_BoundsX");
+    int u_BoundsY = glGetUniformLocation(program, "u_BoundsY");
+
+    // Drawing
 
     glBindVertexArray(vertexArrayId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
     glUseProgram(program);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    float bounds[4];
+    RecalculateBounds(
+        bounds, offsetX, offsetY, zoom, aspectRatio
+    );
+
+    glUniform2f(u_BoundsX, bounds[0], bounds[1]);
+    glUniform2f(u_BoundsY, bounds[2], bounds[3]);
 
     while (!glfwWindowShouldClose(window))
     {
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
