@@ -1,6 +1,7 @@
 # mandelbrot-shader
 
-A rendering of the Mandelbrot Set implemented in GLSL shaders.
+A rendering of the Mandelbrot set implemented in GLSL shaders, using the "escape time" algorithm. The colors of pixels outside the set itself are determined using a simplified HSV to RGB conversion.
+
 Contrary to [my older Python implementation](https://github.com/EimantasPetraitis/mandelbrot-set), this one is much faster as it runs on the GPU
 and it no longer is just a static image (panning and zooming using the mouse is supported).
 
