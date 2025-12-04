@@ -7,10 +7,14 @@ enable_testing()
 set(
     CPP_SOURCE_FILES
     src/Main.cpp
+    src/ReadFile.cpp
+    src/ErrorHandling.cpp
 )
 
 set(
     CPP_HEADER_FILES
+    src/ReadFile.h
+    src/ErrorHandling.h
 )
 
 add_executable(${PROJECT_NAME} ${CPP_SOURCE_FILES} ${CPP_HEADER_FILES})

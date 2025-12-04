@@ -1,14 +1,12 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 #include <array>
-
 #include <cmath>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "ReadFile.h"
+#include "ErrorHandling.h"
 
 #define ZOOM_SPEED 0.5f
 #define MIN_ZOOM -ZOOM_SPEED
@@ -29,17 +27,6 @@ bool mousePressed = false;
 float previousCursorX = -1.0f;
 float previousCursorY = -1.0f;
 
-std::string ReadFile(const std::string& path)
-{
-
-    std::ifstream fileStream(path);
-    std::ostringstream stringStream;
-    stringStream << fileStream.rdbuf();
-
-    return stringStream.str();
-
-}
-
 std::array<float, 2> PixelsToComplexCoordinates(
     int x, int y
 )
@@ -54,46 +41,6 @@ std::array<float, 2> PixelsToComplexCoordinates(
     };
 
     return coordinates;
-
-}
-
-void GLAPIENTRY HandleOpenGLErrors(
-    GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei lenght,
-    const GLchar* message, const void* userParam
-)
-{
-
-    std::cout << "[OpenGL Error] " << "type: " << type << "  id: " << id
-        << "  severity: " << severity << "\n" << message << "\n\n\n";
-    
-    exit(-1);
-
-}
-
-int HandleShaderErrors(GLuint shader)
-{
-
-    int compilationResult;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compilationResult);
-
-    if (compilationResult == GL_FALSE)
-    {
-
-        int messageLenght;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &messageLenght);
-        char* message = (char*)alloca(messageLenght * sizeof(char));
-        glGetShaderInfoLog(shader, messageLenght, &messageLenght, message);
-
-        std::cout << "Error: Failed to compile shader.\n";
-        std::cout << message << "\n";
-
-        glDeleteShader(shader);
-
-        return -1;
-
-    }
-
-    return 0;
 
 }
 
@@ -254,9 +201,7 @@ int main()
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
-        std::cout << "[GLEW Error] Initialization error." << "\n";
-    
-    std::cout << "\n\nOpenGL version " << glGetString(GL_VERSION) << "\n\n";
+        std::cout << "[GLEW Error] Initialization error.\n";
 
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(HandleOpenGLErrors, nullptr);

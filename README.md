@@ -5,8 +5,7 @@ Contrary to [my older Python implementation](https://github.com/EimantasPetraiti
 and it no longer is just a static image (panning and zooming using the mouse is supported).
 
 In the GLSL shader code complex numbers are implemented using 2x2 matrices:
-a number $a + bi$ is represented by 
-
+a number $a + bi$ is represented by
 ```math
 \begin{pmatrix}
 a & -b\\
@@ -22,7 +21,7 @@ This project uses OpenGL with GLFW and GLEW.
 
 1. Build the project with CMake.
     ```bat
-    cmake --build build --config Debug
+    cmake --build build --config Debug --taget all
     ```
 
 2. Run ```build/Mandelbrot.exe``` with the Git root directory as the working directory.
