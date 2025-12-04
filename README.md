@@ -7,7 +7,12 @@ and it no longer is just a static image (panning and zooming using the mouse is 
 In the GLSL shader code complex numbers are implemented using 2x2 matrices:
 a number $a + bi$ is represented by 
 
-$\begin{pmatrix}a & -b\\b & a\end{pmatrix}$
+```math
+\begin{pmatrix}
+a & -b\\
+b & a
+\end{pmatrix}.
+```
 
 Complex number addition and multiplication are thus replaced by matrix operations.
 
