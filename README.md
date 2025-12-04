@@ -5,6 +5,10 @@ A rendering of the Mandelbrot set implemented in GLSL shaders, using the "escape
 Contrary to [my older Python implementation](https://github.com/EimantasPetraitis/mandelbrot-set), this one is much faster as it runs on the GPU
 and it no longer is just a static image (panning and zooming using the mouse is supported).
 
+![A screenshot of the application](https://github.com/EimantasPetraitis/mandelbrot-shader/blob/main/Screenshot%201.png?raw=true)
+
+![A screenshot, zoomed in towards the 'Seahorse Valley'](https://github.com/EimantasPetraitis/mandelbrot-shader/blob/main/Screenshot%202.png?raw=true)
+
 In the GLSL shader code complex numbers are implemented using 2x2 matrices:
 a number $a + bi$ is represented by
 ```math
