@@ -1,6 +1,6 @@
 #version 460 core
 
-#define MAX_ITERATIONS 128
+#define MAX_ITERATIONS 256
 
 layout(location = 0) out vec4 color;
 
